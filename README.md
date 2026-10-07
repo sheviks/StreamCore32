@@ -1,6 +1,6 @@
 # StreamCore32
 
-A network music player for the **ESP32-S3** with a **VS1053** decoder:
+A network music player for the **ESP32-S3** with a **VS1063A** decoder:
 **Spotify Connect**, **Qobuz Connect**, **DLNA / UPnP renderer**, internet
 radio and SD card playback — controlled from the streaming apps, a web UI
 that works on phones, and an optional 2.7" e-paper touch display.
@@ -31,14 +31,14 @@ Derived from [feelfreelinux/cspot](https://github.com/feelfreelinux/cspot).
 
 ## Hardware
 
-Reference board: ESP32-S3 **N16R8** (16 MB flash, 8 MB octal PSRAM), VS1053
+Reference board: ESP32-S3 **N16R8** (16 MB flash, 8 MB octal PSRAM), VS1063A 
 module, GoodDisplay GDEY027T91 2.7" e-paper with FT6336 touch, BQ27220 fuel
 gauge, micro SD socket (SDMMC 1-bit), one SK6812 LED. Only the ESP32-S3 with
-PSRAM and the VS1053 are required; all pins are set in menuconfig.
+PSRAM and the VS1063A are required; all pins are set in menuconfig.
 
 | Part | Default pins |
 |---|---|
-| VS1053 | SPI MOSI 5 · MISO 6 · CLK 4 · XCS 17 · XDCS 7 · XRESET 16 · DREQ 15 |
+| VS1063A | SPI MOSI 5 · MISO 6 · CLK 4 · XCS 17 · XDCS 7 · XRESET 16 · DREQ 15 |
 | SD card | CMD 13 · CLK 12 · D0 11 · card detect 14 |
 | E-paper | SPI MOSI 41 · CLK 40 · CS 9 · DC 18 · RESET 48 · BUSY 47 |
 | I2C (touch, gauge) | SDA 2 · SCL 1 · touch INT 3 · RESET 46 |
