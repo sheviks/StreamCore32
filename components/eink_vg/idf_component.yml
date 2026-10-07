@@ -1,0 +1,7 @@
+version: "0.0.1"
+description: "Converts simple SVG files into a compact, 2-color vector bytecode format ('VG_Q1'). Decodes VG_Q1 byte streams and renders them onto any display class with Adafruit_GFX-like primitives."
+
+url: https://github.com/tobiasguyer/eink_vg
+repository: https://github.com/tobiasguyer/eink_vg
+dependencies:
+  idf: ">=5.0"

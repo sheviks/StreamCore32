@@ -1,0 +1,13 @@
+menuconfig SC32_TOUCH
+    bool "Touch panel (FT6X36)"
+    default y
+    depends on SC32_DISPLAY_EINK
+
+if SC32_TOUCH
+    config GPIO_TOUCH_INT
+        int "INT GPIO"
+        default 3
+    config GPIO_TOUCH_RESET
+        int "RESET GPIO"
+        default 46
+endif

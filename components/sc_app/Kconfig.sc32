@@ -1,0 +1,20 @@
+menu "Device"
+    config SC32_DEVICE_NAME
+        string "Device name"
+        default "StreamCore32"
+        help
+            Name the device announces itself with: Spotify Connect, Qobuz
+            Connect, DLNA, mDNS (http://<name>.local/, so better without
+            spaces) and the web UI.  Can be changed at runtime
+            in the settings (web UI or display); that value is kept in NVS
+            and wins over this default.
+
+    config WIFI_SSID
+        string "Default WiFi network (SSID)"
+        default "SSID"
+        help
+            Used until a network is set in the web UI / on the display.
+    config WIFI_PASSWORD
+        string "Default WiFi password"
+        default "password"
+endmenu

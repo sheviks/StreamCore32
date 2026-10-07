@@ -1,0 +1,20 @@
+menuconfig SC32_DLNA
+    bool "DLNA / UPnP renderer"
+    default y
+    help
+        The device shows up as a DLNA / UPnP AV media renderer: control
+        points (BubbleUPnP, Hi-Fi Cast, foobar2000, JRiver, Kodi, Plex /
+        Jellyfin, ...) send it music from a media server or the phone.
+        Plays MP3, AAC, FLAC, Ogg Vorbis, WAV, WMA and LPCM (audio/L16),
+        seeks in files, plays gap-less (SetNextAVTransportURI).
+        Can be switched off in the settings.
+
+if SC32_DLNA
+    config SC32_DLNA_PORT
+        int "HTTP port of the renderer"
+        range 1024 65535
+        default 49152
+        help
+            Description, control and event URLs are served here
+            (the web UI stays on port 80). SSDP uses UDP 1900.
+endif

@@ -1,0 +1,27 @@
+menuconfig SC32_QOBUZ
+    bool "Qobuz Connect"
+    default y
+    help
+        Qobuz Connect receiver.  Can also be switched off at runtime in the
+        settings.
+
+if SC32_QOBUZ
+    choice QOBUZ_QUALITY
+        prompt "Default audio quality"
+        default QOBUZ_HIRES_96
+        config QOBUZ_MP3
+            bool "MP3 320 kbps"
+        config QOBUZ_CD
+            bool "FLAC 16 bit / 44.1 kHz"
+        config QOBUZ_HIRES_96
+            bool "FLAC hi-res up to 96 kHz"
+        config QOBUZ_HIRES_192
+            bool "FLAC hi-res up to 192 kHz"
+    endchoice
+    config QOBUZ_AUDIO_FORMAT
+        int
+        default 5 if QOBUZ_MP3
+        default 6 if QOBUZ_CD
+        default 7 if QOBUZ_HIRES_96
+        default 27 if QOBUZ_HIRES_192
+endif

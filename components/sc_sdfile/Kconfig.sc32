@@ -1,0 +1,6 @@
+config SC32_SDFILE
+    bool "SD card player"
+    default y
+    depends on SC32_SDCARD
+    help
+        Plays audio files and M3U playlists from the SD card.

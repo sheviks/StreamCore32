@@ -1,0 +1,5 @@
+config SC32_WEBSTREAM
+    bool "Internet radio"
+    default y
+    help
+        Plays internet radio streams (station list in the web UI / display).

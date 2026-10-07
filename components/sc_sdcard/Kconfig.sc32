@@ -1,0 +1,25 @@
+menuconfig SC32_SDCARD
+    bool "SD card (SDMMC, 1-bit)"
+    default y
+    help
+        micro SD card mounted at /sdcard: file player, playlists, file
+        manager in the web UI, crash reports.
+
+if SC32_SDCARD
+    config GPIO_SD_CMD
+        int "CMD GPIO"
+        default 13
+    config GPIO_SD_CLK
+        int "CLK GPIO"
+        default 12
+    config GPIO_SD_D0
+        int "D0 GPIO"
+        default 11
+    config GPIO_SD_CD
+        int "Card detect GPIO (-1 = none)"
+        range -1 48
+        default 14
+        help
+            Card detect switch of the socket (closes to GND when a card is
+            inserted).  -1 if the socket has no detect pin.
+endif

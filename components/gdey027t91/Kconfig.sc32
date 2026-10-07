@@ -1,0 +1,29 @@
+menuconfig SC32_DISPLAY_EINK
+    bool "E-paper display (GDEY027T91) with touch UI"
+    default y
+    help
+        2.7" e-paper with the on-device user interface.  Without it the
+        device is controlled by the streaming apps and the web UI only.
+
+if SC32_DISPLAY_EINK
+    config GPIO_EINK_CS
+        int "CS GPIO"
+        default 9
+    config GPIO_EINK_DC
+        int "DC GPIO"
+        default 18
+    config GPIO_EINK_RESET
+        int "RESET GPIO"
+        default 48
+    config GPIO_EINK_BUSY
+        int "BUSY GPIO"
+        default 47
+    config GPIO_VSPI_MOSI
+        int "SPI MOSI GPIO"
+        default 41
+    config GPIO_VSPI_CLK
+        int "SPI CLK GPIO"
+        default 40
+
+    orsource "../eink_vg/Kconfig.sc32"
+endif

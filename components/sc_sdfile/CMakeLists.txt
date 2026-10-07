@@ -1,0 +1,6 @@
+# SD card file player (enable: menuconfig StreamCore32 -> Streaming sources)
+set(srcs)
+if(CONFIG_SC32_SDFILE)
+  file(GLOB srcs "src/*.cpp" "src/*.c")
+endif()
+idf_component_register(SRCS ${srcs} INCLUDE_DIRS "include" REQUIRES streamcore bell)

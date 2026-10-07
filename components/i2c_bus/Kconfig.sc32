@@ -1,0 +1,9 @@
+menu "I2C bus"
+    depends on SC32_TOUCH || SC32_BATTERY
+    config GPIO_SDA
+        int "SDA GPIO"
+        default 2
+    config GPIO_SCL
+        int "SCL GPIO"
+        default 1
+endmenu

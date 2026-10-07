@@ -1,0 +1,36 @@
+menuconfig SC32_STATUS_LED
+    bool "Status LED (SK6812 / WS2812, RMT)"
+    default y
+    help
+        One addressable RGB LED showing WiFi / streaming state.  Colours,
+        brightness and mode can be changed in the settings.
+
+if SC32_STATUS_LED
+    config GPIO_LED_DATA
+        int "LED data GPIO"
+        default 8
+
+    choice SC32_LED_MODE_DEFAULT
+        prompt "Default mode"
+        default SC32_LED_MODE_ALL
+        config SC32_LED_MODE_OFF
+            bool "Off (the LED is never written)"
+        config SC32_LED_MODE_STARTUP
+            bool "Only while WiFi starts"
+        config SC32_LED_MODE_WIFI
+            bool "WiFi status only"
+        config SC32_LED_MODE_ALL
+            bool "All states (WiFi + streaming services)"
+    endchoice
+    config SC32_LED_MODE
+        int
+        default 0 if SC32_LED_MODE_OFF
+        default 1 if SC32_LED_MODE_STARTUP
+        default 2 if SC32_LED_MODE_WIFI
+        default 3
+
+    config SC32_LED_BRIGHTNESS
+        int "Default brightness (%)"
+        range 1 100
+        default 20
+endif

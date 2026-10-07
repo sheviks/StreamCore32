@@ -1,0 +1,28 @@
+# ============================================================================
+#  StreamCore32 — one menu for the whole firmware.  Every component keeps its
+#  options in its own folder (Kconfig.sc32) and they are collected here; a
+#  component's sub options only show up when it is enabled.
+# ============================================================================
+menu "StreamCore32"
+
+    orsource "../sc_app/Kconfig.sc32"
+
+    menu "Streaming sources"
+        orsource "../sc_spotify/Kconfig.sc32"
+        orsource "../sc_qobuz/Kconfig.sc32"
+        orsource "../sc_webstream/Kconfig.sc32"
+        orsource "../sc_sdfile/Kconfig.sc32"
+        orsource "../sc_dlna/Kconfig.sc32"
+    endmenu
+
+    menu "Hardware"
+        orsource "../bell/Kconfig.sc32"
+        orsource "../sc_sdcard/Kconfig.sc32"
+        orsource "../i2c_bus/Kconfig.sc32"
+        orsource "../gdey027t91/Kconfig.sc32"
+        orsource "../ft6x36/Kconfig.sc32"
+        orsource "../bq27220/Kconfig.sc32"
+        orsource "../sc_app/Kconfig.led"
+    endmenu
+
+endmenu

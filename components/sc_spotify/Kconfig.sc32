@@ -1,0 +1,50 @@
+menuconfig SC32_SPOTIFY
+    bool "Spotify Connect"
+    default y
+    help
+        Spotify Connect receiver (zeroconf login from the Spotify app).
+        Can also be switched off at runtime in the settings.
+
+if SC32_SPOTIFY
+
+    choice SPOTIFY_QUALITY
+        prompt "Default audio quality"
+        default VORBIS_160
+        help
+            Default for the "Spotify quality" setting (changeable at runtime).
+        config VORBIS_96
+            bool "Ogg Vorbis 96 kbps"
+        config VORBIS_160
+            bool "Ogg Vorbis 160 kbps"
+        config VORBIS_320
+            bool "Ogg Vorbis 320 kbps"
+    endchoice
+
+    config SPOTIFY_AUDIO_FORMAT
+        int
+        default 0 if VORBIS_96
+        default 1 if VORBIS_160
+        default 2 if VORBIS_320
+
+    config SPOTIFY_DISCOVERY_MODE_OPEN
+        bool "Stay visible while connected"
+        default y
+        help
+            Keep the mDNS announcement active while a client is connected, so
+            playback can be transferred from another device without
+            disconnecting first.
+
+    config SPOTIFY_CLIENT_ID
+        string "Client ID"
+        default ""
+        help
+            Client ID of a Spotify developer app (developer.spotify.com), needed
+            to fetch the audio files (see components/sc_spotify/README.md).
+            Stays in your local sdkconfig.
+    config SPOTIFY_CLIENT_SECRET
+        string "Client secret"
+        default ""
+        help
+            Client secret of the same app.
+
+endif
