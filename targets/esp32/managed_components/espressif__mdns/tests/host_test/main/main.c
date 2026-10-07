@@ -1,9 +1,11 @@
 /*
- * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2026 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
 #include <stdio.h>
+#include <stdlib.h>
+#include "esp_idf_version.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -20,8 +22,15 @@ static EventGroupHandle_t s_exit_signal = NULL;
 
 static int exit_console(int argc, char **argv)
 {
+#ifdef CONFIG_IDF_TARGET_LINUX
+    /* Host tests do not need graceful REPL teardown; exit hard so leftover
+     * console_repl / linenoise threads cannot keep the process alive. */
+    ESP_LOGI(TAG, "Exit");
+    exit(0);
+#else
     xEventGroupSetBits(s_exit_signal, 1);
     return 0;
+#endif
 }
 
 #else
@@ -93,16 +102,32 @@ static void mdns_test_app(esp_netif_t *interface)
     ESP_LOGI(TAG, "mdns hostname set to: [%s]", CONFIG_TEST_HOSTNAME);
     ESP_ERROR_CHECK(mdns_register_netif(interface));
     ESP_ERROR_CHECK(mdns_netif_action(interface, MDNS_EVENT_ENABLE_IP4 /*| MDNS_EVENT_ENABLE_IP6 */ | MDNS_EVENT_IP4_REVERSE_LOOKUP | MDNS_EVENT_IP6_REVERSE_LOOKUP));
+    // Query _services._dns-sd._udp to discover available service types
+    mdns_result_t *results = NULL;
+    esp_err_t err = mdns_query_ptr("_services._dns-sd", "_udp", 2000, 1, &results);
+    if (err) {
+        ESP_LOGE(TAG, "Query for _services._dns-sd._udp failed: 0x%x", err);
+    }
+    for (mdns_result_t *r = results; r; r = r->next) {
+        ESP_LOGI(TAG, "Discovered service: %s.%s",
+                 r->service_type ? r->service_type : "?",
+                 r->proto ? r->proto : "?");
+    }
+    mdns_query_results_free(results);
 
 #ifdef CONFIG_TEST_CONSOLE
     esp_console_repl_t *repl = NULL;
     esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
-    esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     s_exit_signal = xEventGroupCreate();
 
     repl_config.prompt = "mdns>";
     // init console REPL environment
+#if CONFIG_IDF_TARGET_LINUX && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 1, 0)
+    ESP_ERROR_CHECK(esp_console_new_repl_stdio(&repl_config, &repl));
+#else
+    esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+#endif
 
     const esp_console_cmd_t cmd_exit = {
         .command = "exit",

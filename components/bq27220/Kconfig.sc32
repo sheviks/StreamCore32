@@ -1,0 +1,12 @@
+menuconfig SC32_BATTERY
+    bool "Battery fuel gauge (BQ27220)"
+    default y
+
+if SC32_BATTERY
+    config BQ27220_I2C_ADDR
+        hex "I2C address"
+        default 0x55
+    config BQ27220_LOG_VALUES
+        bool "Log every reading"
+        default n
+endif

@@ -1,0 +1,6 @@
+# Adafruit GFX (drawing primitives for the e-paper driver)
+set(srcs)
+if(CONFIG_SC32_DISPLAY_EINK)
+  set(srcs "Adafruit_GFX.cpp")
+endif()
+idf_component_register(SRCS ${srcs} INCLUDE_DIRS ".")

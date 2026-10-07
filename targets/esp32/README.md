@@ -1,12 +1,26 @@
-# ESP32 StreamCore32 integration
+# targets/esp32
 
-Integrates StreamCore32 with esp32 platform. To configure WiFi SSID and password use idf.py menuconfig.
+The ESP-IDF project. It contains no application code: `main/main.cpp` calls
+`sc32_app_main()` from [sc_app](../../components/sc_app/README.md), and
+`CMakeLists.txt` adds `../../components` to the component path.
 
+| File | |
+|---|---|
+| `CMakeLists.txt` | project, component path |
+| `main/` | `app_main()` → `sc32_app_main()` |
+| `sdkconfig.defaults` | minimal configuration for an **ESP32-S3 N16R8** (16 MB flash, 8 MB octal PSRAM): PSRAM allocation, WiFi / lwIP buffers, mbedTLS, core dump to flash, ... StreamCore32's own options come from the Kconfig defaults. |
+| `partitions.csv` | NVS 24 KB · 2 × 6 MB app · 3 MB storage · 128 KB core dump |
 
-## Selecting your ESP32
+```shell
+idf.py set-target esp32s3      # once
+idf.py menuconfig              # StreamCore32 → ...
+idf.py build flash monitor
+```
 
-To run StreamCore32, select a ESP32 with PSRAM. ESP32-WROVER are confirmed to work.
-StreamCore32 will not run on a ESP32-WROOM unless the board has external PSRAM.
+Your `sdkconfig` (with WiFi password and Spotify client secret) is local and
+ignored by git. After an update that changes options, delete it and run
+`idf.py reconfigure` (your values have to be entered again).
 
-ref. https://products.espressif.com/#/product-selector
-
+Other boards: everything board specific (pins, which hardware exists) is in
+menuconfig → StreamCore32 → Hardware. Other ESP32 variants need PSRAM and
+probably their own `sdkconfig.defaults`.

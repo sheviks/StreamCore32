@@ -1,0 +1,56 @@
+menu "Audio output (VS1053)"
+
+    config GPIO_VS_CS
+        int "VS1053 XCS (command) GPIO"
+        range 0 48
+        default 17
+    config GPIO_VS_DCS
+        int "VS1053 XDCS (data) GPIO"
+        range 0 48
+        default 7
+    config GPIO_VS_RESET
+        int "VS1053 XRESET GPIO (-1 = not connected)"
+        range -1 48
+        default 16
+    config GPIO_VS_DREQ
+        int "VS1053 DREQ GPIO"
+        range 0 48
+        default 15
+
+    menu "VS1053 SPI bus"
+        config GPIO_HSPI_MOSI
+            int "MOSI GPIO"
+            default 5
+        config GPIO_HSPI_MISO
+            int "MISO GPIO"
+            default 6
+        config GPIO_HSPI_CLK
+            int "CLK GPIO"
+            default 4
+    endmenu
+
+    config VS_SPI_HOST
+        int
+        default 1   # SPI2_HOST
+
+    config STREAM_BUFFER_SIZE
+        int "Audio buffer per stream (bytes)"
+        range 16384 524288
+        default 81920
+        help
+            Ring buffer between a stream and the decoder (PSRAM).  A multiple
+            of 1024 is recommended.
+
+    config REPORT_ON_SCREEN
+        bool "Log decoder statistics (bitrate, format) while playing"
+        default n
+
+    # the VS1053 decodes everything itself
+    config AUDIO_SINK_VS1053
+        bool
+        default y
+    config BELL_NOCODEC
+        bool
+        default y
+
+endmenu

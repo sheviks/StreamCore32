@@ -1,172 +1,162 @@
 # StreamCore32
 
-StreamCore32 is a Connect-device implementation for **Qobuz** and **Spotify**, written in C++, currently targeting **ESP32** with **VS1053** modules.
+A network music player for the **ESP32-S3** with a **VS1053** decoder:
+**Spotify Connect**, **Qobuz Connect**, **DLNA / UPnP renderer**, internet
+radio and SD card playback — controlled from the streaming apps, a web UI
+that works on phones, and an optional 2.7" e-paper touch display.
 
-This library is derived from [feelfreelinux/cspot](https://github.com/feelfreelinux/cspot).
+Derived from [feelfreelinux/cspot](https://github.com/feelfreelinux/cspot).
 
-> **Note**
-> - Spotify playback requires a **Spotify Premium** account and ClientId and ClientSecret from a SpotifyDeveloper-app.
-> - Qobuz will only play **30 seconds per track** without a paid subscription.
+| Web UI | Phone | E-paper |
+|---|---|---|
+| ![web player](docs/img/web_player.png) | ![phone](docs/img/web_phone.png) | ![e-paper](docs/img/eink_player.png) |
 
-## Building
+> - Spotify needs a **Premium** account and the client ID / secret of a
+>   Spotify developer app ([details](components/sc_spotify/README.md#spotify-developer-app)).
+> - Qobuz plays only **30 s previews** without a paid subscription.
 
-### Prerequisites
+## Features
 
-Summary:
+- **Spotify Connect** — Ogg Vorbis 96 / 160 / 320 kbps, queue, shuffle, repeat, seek, take-over from other devices
+- **Qobuz Connect** — MP3 or FLAC up to 24 bit / 192 kHz, queue, autoplay, all apps in sync
+- **DLNA / UPnP renderer** — BubbleUPnP, Hi-Fi Cast, foobar2000, Kodi, Plex / Jellyfin, Home Assistant ...; gap-less, seeking, LPCM
+- **Internet radio** — station search (radio-browser.info), favourites, song titles (ICY or polled), playlists
+- **SD card** — MP3, FLAC, WAV, Ogg, AAC, M4A, WMA, MIDI; gap-less, tags, seeking, M3U playlists, hot plug
+- **Web UI** (`http://<device name>.local/`) — player, queue, radio, file manager (upload / download / playlists), settings, live log; phone layout
+- **E-paper UI** — player, queue, radio, file browser, settings with on-screen keyboard; the web UI's look
+- **One active source** — starting one stops the other; every source has the same controls, the UIs hide what a source can't do
+- **Settings** stored on the device; bass / treble (VS10xx), status LED colours, dark mode
+- **Crash reports** on the SD card (reason, panic output, last log lines)
+- **Modular**: every part can be switched off in menuconfig — e.g. a headless build without display
 
-- [esp-idf](https://github.com/espressif/esp-idf) v5.5 or higher
-- downloaded submodules
-- protoc
+## Hardware
 
-This project utilizes submodules, please make sure you are cloning with the `--recursive` flag or use `git submodule update --init --recursive`.
+Reference board: ESP32-S3 **N16R8** (16 MB flash, 8 MB octal PSRAM), VS1053
+module, GoodDisplay GDEY027T91 2.7" e-paper with FT6336 touch, BQ27220 fuel
+gauge, micro SD socket (SDMMC 1-bit), one SK6812 LED. Only the ESP32-S3 with
+PSRAM and the VS1053 are required; all pins are set in menuconfig.
 
-This library uses nanopb to generate c files from protobuf definitions. Nanopb itself is included via submodules, but it requires a few external python libraries to run the generators.
+| Part | Default pins |
+|---|---|
+| VS1053 | SPI MOSI 5 · MISO 6 · CLK 4 · XCS 17 · XDCS 7 · XRESET 16 · DREQ 15 |
+| SD card | CMD 13 · CLK 12 · D0 11 · card detect 14 |
+| E-paper | SPI MOSI 41 · CLK 40 · CS 9 · DC 18 · RESET 48 · BUSY 47 |
+| I2C (touch, gauge) | SDA 2 · SCL 1 · touch INT 3 · RESET 46 |
+| Status LED | 8 |
 
-To install them you can use pip:
+## Build
 
-```shell
-$ pip3 install protobuf grpcio-tools
-```
-
-### Building for ESP32
-
-The ESP32 target is built using the [esp-idf](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html) toolchain
-
-```shell
-# Follow the instructions for setting up esp-idf for your operating system, up to `. ./export.sh` or equivalent
-# esp-idf has a Python virtualenv, install nanopb's dependencies in it
-$ pip3 install protobuf grpcio-tools
-# update submodules after each code pull to avoid build errors
-$ git submodule update --init --recursive
-# navigate to the targets/esp32 directory
-$ cd targets/esp32
-# run once after pulling the repo
-$ idf.py set-target esp32
-```
-
-Configure StreamCore32 according to your hardware
-
-```shell
-# run visual config editor, when done press Q to save and exit
-$ idf.py menuconfig
-```
-
-Navigate to `WiFi Configuration` and provide wifi connection details
-
-Navigate to `Spotify Configuration` and provide ClientId and ClientSecret. Furthermore you may configure device name and audio quality.
-
-Navigate to `Audio Sink Configuration`, you may configure the audio sink and further options.
-
-Spotify should still be supporting different Audio Sinks, but Qobuz is currently solely focused on VS1053b.
-
-#### Building and flashing
-
-Build and upload the firmware
+Needs [ESP-IDF](https://github.com/espressif/esp-idf) **5.5** or newer and
+the nanopb Python dependencies (protobuf code is generated during the build):
 
 ```shell
-# compile
-$ idf.py build
+. $IDF_PATH/export.sh
+pip install protobuf grpcio-tools
 
-# upload
-$ idf.py flash
-```
-The ESP32 will restart and begin running StreamCore32.
-The first startup will take some time, to fetch missing ids. Those are stored in NVS, and will only be refetched, if they no more work.
-You can monitor it using a serial console.
-
-Optionally run as single command
-
-```shell
-# compile, flash and attach monitor
-$ idf.py build flash monitor
+cd targets/esp32
+idf.py set-target esp32s3        # once
+idf.py menuconfig                # StreamCore32 → ...
+idf.py build flash monitor
 ```
 
-## Web UI
+`mdns` and `led_strip` come from the ESP-IDF component manager on the first
+build. There are no git submodules.
 
-StreamCore32 includes a lightweight Web UI that talks to the device via WebSockets.  
-It is meant for:
+### Configuration
 
-- seeing the current player state (Qobuz / Spotify / Web radio)
-- radio interface
-- watching logs in the browser
+Everything is in one menu:
 
-> Status: experimental.
+```
+StreamCore32
+  Device                        device name, default WiFi
+  Streaming sources
+    [*] Spotify Connect   --->  quality, stay visible, client id / secret
+    [*] Qobuz Connect     --->  quality
+    [*] Internet radio
+    [*] SD card player          (needs the SD card)
+    [*] DLNA / UPnP renderer -> HTTP port
+  Hardware
+    Audio output (VS1053) --->  pins, SPI bus, buffer
+    [*] SD card           --->  pins
+    [*] E-paper display   --->  pins, icon size
+    [*]   Touch panel     --->  pins
+    [*] Battery (BQ27220) --->  I2C address
+    I2C bus               --->  pins (with touch or battery)
+    [*] Status LED        --->  pin, mode, brightness
+```
 
-### Accessing the Web UI
+A part's options only appear when it is enabled; a disabled part is not
+compiled. Without the e-paper display the firmware is **headless** (apps +
+web UI); the web UI hides what is not built in.
 
-Open a browser on a device in the same network and go to:
+Your `targets/esp32/sdkconfig` holds the WiFi password and the Spotify
+secret — it is ignored by git. After an update that renames options, delete
+it and configure again.
 
-   http://sc32.local/
+## First start
 
-### Features
+1. The device joins the WiFi from menuconfig (change it later in the web UI
+   or on the display).
+2. Open `http://<device name>.local/` (default `http://StreamCore32.local/`).
+3. It appears in Spotify ("Devices available"), Qobuz (Connect) and DLNA apps
+   under the device name. The first Spotify / Qobuz start takes a moment
+   (ids are fetched and stored).
 
-Current functionality (subject to change):
+## Documentation
 
-- Player view
-  - Shows current track metadata (service / title / artist / album) when available
-  - Displays the active stream service (e.g. Qobuz, Spotify, Web radio)
-  - Reacts to WebSocket updates from the device
+- [Architecture](docs/architecture.md) — overview diagram, stream interface,
+  audio path, start-up, tasks
+- [CHANGELOG](CHANGELOG.md)
 
-![player](/StreamCore32/stream/webstream/doc/player.jpg)
+| Component | |
+|---|---|
+| [streamcore](components/streamcore/README.md) | `StreamBase`, `AudioControl`, web UI server, zeroconf, logging, file probe |
+| [sc_app](components/sc_app/README.md) | application, `StreamManager`, settings, WiFi, crash log, LED, UIs |
+| [sc_spotify](components/sc_spotify/README.md) | Spotify Connect |
+| [sc_qobuz](components/sc_qobuz/README.md) | Qobuz Connect |
+| [sc_dlna](components/sc_dlna/README.md) | DLNA / UPnP renderer |
+| [sc_webstream](components/sc_webstream/README.md) | internet radio |
+| [sc_sdfile](components/sc_sdfile/README.md) | SD card player |
+| [bell](components/bell/README.md) | networking, utilities, VS1053 driver (reduced feelfreelinux/bell) |
+| [sc_sdcard](components/sc_sdcard/README.md) · [gdey027t91](components/gdey027t91/README.md) · [ft6x36](components/ft6x36/README.md) · [bq27220](components/bq27220/README.md) · [i2c_bus](components/i2c_bus/README.md) | hardware drivers |
+| [eink_ui](components/eink_ui/README.md) · [eink_vg](components/eink_vg/README.md) · [Adafruit-GFX](components/Adafruit-GFX/README.md) | e-paper UI toolkit, vector icons, graphics |
+| [targets/esp32](targets/esp32/README.md) | the ESP-IDF project |
 
-[image-source](https://www.pexels.com/de-de/foto/schwarzes-schallplatten-vinyl-167092/)
-- Radio interface
-  - Search for radio-stations
-  - Save stations to favorites (name and url)
-  - To delete from favorite, just click on the star-icon
+```mermaid
+flowchart LR
+  APPS(["Spotify / Qobuz apps"]) --> SP["sc_spotify"] & QB["sc_qobuz"]
+  CP(["DLNA apps"]) --> DL["sc_dlna"]
+  BR(["browser"]) --> APP["sc_app<br/>StreamManager"]
+  DISP(["touch display"]) --> APP
+  APP --> SP & QB & DL & WR["sc_webstream"] & SD["sc_sdfile"]
+  SP & QB & DL & WR & SD --> AC["streamcore<br/>AudioControl"] --> VS["VS1053"]
+```
 
-![radio](/StreamCore32/stream/webstream/doc/radio.jpg)
+## Development
 
-- Web log output
-  - Logging is routed through SC32_LOG
-  - SC32_LOG can be configured with an optional ws_send callback so logs are forwarded to the Web UI
-  - This allows you to debug the device without a serial cable, directly in the browser
+- **E-paper UI on a PC**: [tools/scui_sim](tools/scui_sim/README.md) renders
+  every page and checks the touch handling.
+- **DLNA tests on a PC**: [tools/dlna_test](tools/dlna_test/README.md)
+  (protocol against Home Assistant's DLNA library, HTTP reader, probe).
+- **A new source**: derive from `StreamBase` — see
+  [streamcore](components/streamcore/README.md#writing-a-new-source).
+- Code style: `.clang-format` (Google based).
 
-![debug](/StreamCore32/stream/webstream/doc/debug.jpg)
+## Known limitations
 
-# Architecture
+- Spotify: event reporting is not supported, plays do not show up in
+  "recently played". New Spotify developer apps cannot be created at the moment.
+- No over-the-air update yet (the partition table already has two app slots).
+- The web UI loads the Material Symbols font from Google Fonts (icons need
+  internet access in the browser).
 
-## External interface
+## Credits and license
 
-`StreamCore32` is meant to be used as a lightweight C++ library for playing back Spotify/Qobuz/Web-Radio music and receive control notifications from Spotify-/Qobuz-connect. 
-It exposes an interface for starting the communication with Spotify and Qobuz servers trough MDNS.
+StreamCore32 is licensed under the **GNU GPL v3** ([LICENSE.md](LICENSE.md)).
 
-## Internal details
-
-The connection with Spotify servers to play music and recieve control information is pretty complex. First of all an access point address must be fetched from Spotify ([`ApResolve`](StreamCore32/stream/spotify/src/ApResolve.cpp) fetches the list from http://apresolve.spotify.com/). Then a [`PlainConnection`](StreamCore32/stream/spotify/include/PlainConnection.h) with the selected Spotify access point must be established. It is then upgraded to an encrypted [`ShannonConnection`](StreamCore32/stream/spotify/include/ShannonConnection.h).
-
-# Known limitations
-
-WebUI:
-- The player page is currently mostly visual:
-  - it reacts to WS messages (state, track changes, etc.)
-  - buttons for skip / seek / play / pause are not fully wired up yet
-
-Spotify:
-- Spotify event reporting (event-service/v1) is no more supported:
-  - played tracks do not show up in “recently played”
-  - artists do not get additional “plays” reported from this device
-
-# Spotify Developer Setup
-Currently Spotify has stopped the creation of new spotify-apps. But if, in any time, creation will be allowed again, Step 1 would describe how to create a new App. Until then, try to reach out to a friend with a already craeted App. Access is limited to 5 Accounts.
-
-1) Create a Spotify app (to get Client ID + Secret)
- - Log in to the Spotify Developer Dashboard and open your Dashboard.
- - Click Create an App.
- - Fill in App name and App description, accept the Developer TOS, then click Create.
-
- 2) To add a tester/user:
- - In the Developer Dashboard, open your app.
- - Go to Settings.
- - Open Users Management (sometimes shown as Users and Access / User Management).
- - Click Add new user.
- - Enter the user’s name and the email address associated with their Spotify account.
-
- 3) Client-Id and -Secret
- - In the app’s overview/settings, you’ll see your Client ID.
- - Click View client secret to reveal the Client Secret.
-
- Reference: [developer.spotify.com - Qouta modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes)
-
- Special thanks go out to [philippe44](https://github.com/philippe44) for adapting the AccessKeyFetcher to the new Api restrictions.
-
+Built on [cspot](https://github.com/feelfreelinux/cspot) and
+[bell](https://github.com/feelfreelinux/bell) by feelfreelinux and
+contributors, with civetweb, nanopb, cJSON, nlohmann json (in `bell/external`),
+the Adafruit GFX Library, the Inter and DejaVu fonts and feather icons — see
+the licenses in the respective folders. Thanks to
+[philippe44](https://github.com/philippe44) for the AccessKeyFetcher work.

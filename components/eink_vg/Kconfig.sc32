@@ -1,0 +1,10 @@
+menu "Icons (eink_vg)"
+    config EINK_VG_BOX_W
+        int "SVG scale-to-fit box width (px)"
+        range 8 256
+        default 64
+    config EINK_VG_BOX_H
+        int "SVG scale-to-fit box height (px)"
+        range 8 256
+        default 64
+endmenu

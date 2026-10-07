@@ -1,12 +1,22 @@
-.cache/
-.DS_Store
-__pycache__/
+# build output
 build/
 build*/
-wiki/
-py/
-result/
-authBlob.json
-config.json
-targets/esp32/sdkconfig.streamcore32-wrover-b
+targets/esp32/build/
+targets/esp32/managed_components/
+targets/esp32/dependencies.lock
+# local configuration (contains WiFi password / Spotify client secret)
+targets/esp32/sdkconfig
+targets/esp32/sdkconfig.old
+# tools
+tools/scui_sim/out/
+tools/scui_sim/gen/
+tools/scui_sim/scui_sim
+tools/scui_sim/scui_sim.exe
+tools/dlna_test/dlna_test
+tools/dlna_test/http_test
+# editors / OS
+.cache/
+.vscode/
+.DS_Store
+__pycache__/
 *.bak
